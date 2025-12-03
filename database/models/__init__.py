@@ -13,6 +13,11 @@ from database.models.mail_template import MailTemplate
 from database.models.document_template import DocumentTemplate
 from database.models.system_config import SystemConfig
 from database.models.backup_history import BackupHistory
+# GA用評価要素テーブル
+from database.models.evaluation_factor import EvaluationFactor
+from database.models.staff_factor_weight import StaffFactorWeight
+from database.models.admin_evaluation import AdminEvaluation
+from database.models.hospital_choice import HospitalChoice
 
 __all__ = [
     "Hospital",
@@ -26,4 +31,9 @@ __all__ = [
     "DocumentTemplate",
     "SystemConfig",
     "BackupHistory",
+    # GA用評価要素テーブル
+    "EvaluationFactor",
+    "StaffFactorWeight",
+    "AdminEvaluation",
+    "HospitalChoice",
 ]

@@ -78,7 +78,7 @@ def init_db():
     全てのテーブルを作成
     """
     logger.info("Initializing database...")
-    
+
     # 全てのモデルをインポート（テーブル作成のため）
     from database.models import (
         hospital,
@@ -91,9 +91,14 @@ def init_db():
         mail_template,
         document_template,
         system_config,
-        backup_history
+        backup_history,
+        # GA用評価要素テーブル
+        evaluation_factor,
+        staff_factor_weight,
+        admin_evaluation,
+        hospital_choice,
     )
-    
+
     # テーブル作成
     Base.metadata.create_all(bind=engine)
     logger.info("Database initialized successfully")

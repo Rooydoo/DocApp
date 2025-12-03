@@ -73,7 +73,14 @@ class Hospital(Base, TimestampMixin):
         foreign_keys="[StaffWeight.third_choice_hospital_id]",
         back_populates="third_choice_hospital"
     )
-    
+
+    # GA用病院希望
+    hospital_choices = relationship(
+        "HospitalChoice",
+        back_populates="hospital",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"<Hospital(id={self.id}, name='{self.name}', capacity=({self.resident_capacity},{self.specialist_capacity},{self.instructor_capacity}))>"
     

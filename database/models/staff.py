@@ -59,7 +59,26 @@ class Staff(Base, TimestampMixin):
         back_populates="staff",
         cascade="all, delete-orphan"
     )
-    
+
+    # GA用評価関連
+    factor_weights = relationship(
+        "StaffFactorWeight",
+        back_populates="staff",
+        cascade="all, delete-orphan"
+    )
+
+    admin_evaluations = relationship(
+        "AdminEvaluation",
+        back_populates="staff",
+        cascade="all, delete-orphan"
+    )
+
+    hospital_choices = relationship(
+        "HospitalChoice",
+        back_populates="staff",
+        cascade="all, delete-orphan"
+    )
+
     def __repr__(self):
         return f"<Staff(id={self.id}, name='{self.name}', type='{self.staff_type}')>"
     
