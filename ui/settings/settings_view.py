@@ -1,13 +1,16 @@
 """
 設定画面
-API設定、GA設定、システム設定を管理
+API設定、GA設定、システム設定、評価要素を管理
 """
 import customtkinter as ctk
-from typing import Dict, Any
-from config.constants import Colors, Fonts, Spacing
+from typing import Dict, Any, Optional
+from config.constants import Colors, Fonts, Spacing, FactorType
 from services.config_service import config_service
+from database.base import SessionLocal
+from database.models.evaluation_factor import EvaluationFactor
+from repositories.evaluation_factor_repository import EvaluationFactorRepository
 from utils.logger import get_logger
-from utils.exceptions import ValidationException
+from utils.exceptions import ValidationException, DuplicateRecordException
 
 logger = get_logger(__name__)
 
@@ -72,6 +75,7 @@ class SettingsView(ctk.CTkFrame):
         self.tabs = [
             ("api", "🔑 API設定"),
             ("ga", "🧬 GA設定"),
+            ("factors", "📊 評価要素"),
             ("system", "🖥️ システム設定"),
         ]
         
@@ -136,6 +140,8 @@ class SettingsView(ctk.CTkFrame):
             self._load_api_settings()
         elif tab_id == "ga":
             self._load_ga_settings()
+        elif tab_id == "factors":
+            self._load_factors_settings()
         elif tab_id == "system":
             self._load_system_settings()
     
@@ -419,3 +425,403 @@ class SettingsView(ctk.CTkFrame):
         )
         dialog.get_input()
         logger.error(f"Error: {message}")
+
+    # ===== 評価要素管理 =====
+
+    def _load_factors_settings(self):
+        """評価要素設定を読み込み"""
+        # 専攻医重視要素セクション
+        self._add_section_title("専攻医重視要素")
+        self._add_factor_description(
+            "専攻医が配属先を選ぶ際に重視する要素です。\n"
+            "各専攻医は合計100ポイントをこれらの要素に配分します。"
+        )
+        self._add_factor_add_button(FactorType.STAFF_PREFERENCE)
+        self._load_factor_list(FactorType.STAFF_PREFERENCE)
+
+        # 医局側評価要素セクション
+        self._add_section_title("医局側評価要素", top_padding=True)
+        self._add_factor_description(
+            "医局側が各専攻医を評価する際に使用する要素です。\n"
+            "各要素に対して0.0〜1.0の評価値を設定します。"
+        )
+        self._add_factor_add_button(FactorType.ADMIN_EVALUATION)
+        self._load_factor_list(FactorType.ADMIN_EVALUATION)
+
+    def _add_factor_description(self, text: str):
+        """要素の説明を追加"""
+        desc_label = ctk.CTkLabel(
+            self.content_frame,
+            text=text,
+            font=(Fonts.FAMILY, Fonts.SMALL),
+            text_color=Colors.TEXT_SECONDARY,
+            anchor="w",
+            justify="left"
+        )
+        desc_label.pack(fill="x", pady=(0, Spacing.PADDING_MEDIUM))
+
+    def _add_factor_add_button(self, factor_type: str):
+        """要素追加ボタンを追加"""
+        btn_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(0, Spacing.PADDING_SMALL))
+
+        add_btn = ctk.CTkButton(
+            btn_frame,
+            text="➕ 新規要素を追加",
+            font=(Fonts.FAMILY, Fonts.BODY),
+            fg_color=Colors.SUCCESS,
+            hover_color="#219a52",
+            width=180,
+            height=36,
+            command=lambda: self._show_factor_dialog(None, factor_type)
+        )
+        add_btn.pack(side="left")
+
+    def _load_factor_list(self, factor_type: str):
+        """評価要素リストを表示"""
+        with SessionLocal() as db:
+            repo = EvaluationFactorRepository(db)
+            factors = repo.get_by_type(factor_type)
+
+        if not factors:
+            no_data_label = ctk.CTkLabel(
+                self.content_frame,
+                text="登録されている要素はありません",
+                font=(Fonts.FAMILY, Fonts.BODY),
+                text_color=Colors.TEXT_SECONDARY,
+            )
+            no_data_label.pack(pady=Spacing.PADDING_MEDIUM)
+            return
+
+        # 要素リスト
+        for factor in factors:
+            self._create_factor_row(factor)
+
+    def _create_factor_row(self, factor: EvaluationFactor):
+        """評価要素の行を作成"""
+        row_frame = ctk.CTkFrame(
+            self.content_frame,
+            fg_color=Colors.BG_MAIN,
+            corner_radius=Spacing.RADIUS_CARD
+        )
+        row_frame.pack(fill="x", pady=4)
+
+        # 左側: 要素情報
+        info_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        info_frame.pack(side="left", fill="both", expand=True, padx=Spacing.PADDING_MEDIUM, pady=Spacing.PADDING_SMALL)
+
+        # 要素名
+        name_label = ctk.CTkLabel(
+            info_frame,
+            text=factor.name,
+            font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+            text_color=Colors.TEXT_PRIMARY,
+            anchor="w"
+        )
+        name_label.pack(fill="x")
+
+        # 説明
+        if factor.description:
+            desc_label = ctk.CTkLabel(
+                info_frame,
+                text=factor.description,
+                font=(Fonts.FAMILY, Fonts.SMALL),
+                text_color=Colors.TEXT_SECONDARY,
+                anchor="w"
+            )
+            desc_label.pack(fill="x")
+
+        # ステータス
+        status_text = "✓ 有効" if factor.is_active else "✗ 無効"
+        status_color = Colors.SUCCESS if factor.is_active else Colors.TEXT_SECONDARY
+        status_label = ctk.CTkLabel(
+            info_frame,
+            text=status_text,
+            font=(Fonts.FAMILY, Fonts.SMALL),
+            text_color=status_color,
+            anchor="w"
+        )
+        status_label.pack(fill="x")
+
+        # 右側: アクションボタン
+        btn_frame = ctk.CTkFrame(row_frame, fg_color="transparent")
+        btn_frame.pack(side="right", padx=Spacing.PADDING_MEDIUM, pady=Spacing.PADDING_SMALL)
+
+        # 編集ボタン
+        edit_btn = ctk.CTkButton(
+            btn_frame,
+            text="✏️",
+            font=(Fonts.FAMILY, Fonts.BODY),
+            fg_color=Colors.INFO,
+            hover_color=Colors.PRIMARY_HOVER,
+            width=40,
+            height=32,
+            command=lambda: self._show_factor_dialog(factor.id, factor.factor_type)
+        )
+        edit_btn.pack(side="left", padx=2)
+
+        # 有効/無効切り替えボタン
+        toggle_text = "🚫" if factor.is_active else "✓"
+        toggle_btn = ctk.CTkButton(
+            btn_frame,
+            text=toggle_text,
+            font=(Fonts.FAMILY, Fonts.BODY),
+            fg_color=Colors.WARNING if factor.is_active else Colors.SUCCESS,
+            hover_color="#c78c0a" if factor.is_active else "#219a52",
+            width=40,
+            height=32,
+            command=lambda fid=factor.id: self._toggle_factor(fid)
+        )
+        toggle_btn.pack(side="left", padx=2)
+
+        # 削除ボタン
+        delete_btn = ctk.CTkButton(
+            btn_frame,
+            text="🗑️",
+            font=(Fonts.FAMILY, Fonts.BODY),
+            fg_color=Colors.ERROR,
+            hover_color="#c0392b",
+            width=40,
+            height=32,
+            command=lambda fid=factor.id: self._delete_factor(fid)
+        )
+        delete_btn.pack(side="left", padx=2)
+
+    def _show_factor_dialog(self, factor_id: Optional[int], factor_type: str):
+        """評価要素の追加/編集ダイアログを表示"""
+        dialog = FactorEditDialog(
+            self,
+            factor_id=factor_id,
+            factor_type=factor_type,
+            on_save=lambda: self._load_tab_content("factors")
+        )
+        dialog.grab_set()
+
+    def _toggle_factor(self, factor_id: int):
+        """評価要素の有効/無効を切り替え"""
+        try:
+            with SessionLocal() as db:
+                repo = EvaluationFactorRepository(db)
+                repo.toggle_active(factor_id)
+            self._load_tab_content("factors")
+            logger.info(f"Toggled factor {factor_id}")
+        except Exception as e:
+            self._show_error(f"切り替えに失敗しました: {str(e)}")
+            logger.error(f"Failed to toggle factor {factor_id}: {e}")
+
+    def _delete_factor(self, factor_id: int):
+        """評価要素を削除"""
+        # 確認ダイアログ
+        confirm = ctk.CTkInputDialog(
+            text="この評価要素を削除しますか？\n関連するデータも削除されます。\n\n削除する場合は「削除」と入力してください。",
+            title="削除確認"
+        )
+        result = confirm.get_input()
+
+        if result == "削除":
+            try:
+                with SessionLocal() as db:
+                    repo = EvaluationFactorRepository(db)
+                    repo.delete(factor_id)
+                self._load_tab_content("factors")
+                logger.info(f"Deleted factor {factor_id}")
+            except Exception as e:
+                self._show_error(f"削除に失敗しました: {str(e)}")
+                logger.error(f"Failed to delete factor {factor_id}: {e}")
+
+
+class FactorEditDialog(ctk.CTkToplevel):
+    """評価要素編集ダイアログ"""
+
+    def __init__(
+        self,
+        parent,
+        factor_id: Optional[int],
+        factor_type: str,
+        on_save: callable
+    ):
+        super().__init__(parent)
+
+        self.factor_id = factor_id
+        self.factor_type = factor_type
+        self.on_save = on_save
+        self.factor: Optional[EvaluationFactor] = None
+
+        # ダイアログ設定
+        self.title("評価要素の編集" if factor_id else "新規評価要素")
+        self.geometry("500x400")
+        self.resizable(False, False)
+
+        # 既存データを読み込み
+        if factor_id:
+            with SessionLocal() as db:
+                repo = EvaluationFactorRepository(db)
+                self.factor = repo.get(factor_id)
+
+        self._create_form()
+
+    def _create_form(self):
+        """フォームを作成"""
+        main_frame = ctk.CTkFrame(self, fg_color=Colors.BG_MAIN)
+        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        # タイプ表示
+        type_name = FactorType.display_name(self.factor_type)
+        type_label = ctk.CTkLabel(
+            main_frame,
+            text=f"タイプ: {type_name}",
+            font=(Fonts.FAMILY, Fonts.SMALL),
+            text_color=Colors.TEXT_SECONDARY
+        )
+        type_label.pack(anchor="w", pady=(0, Spacing.PADDING_MEDIUM))
+
+        # 要素名
+        name_label = ctk.CTkLabel(
+            main_frame,
+            text="要素名 *",
+            font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+            text_color=Colors.TEXT_PRIMARY,
+            anchor="w"
+        )
+        name_label.pack(fill="x")
+
+        self.name_entry = ctk.CTkEntry(
+            main_frame,
+            font=(Fonts.FAMILY, Fonts.BODY),
+            placeholder_text="例: 年収、通勤距離、学術実績",
+            height=40
+        )
+        self.name_entry.pack(fill="x", pady=(4, Spacing.PADDING_MEDIUM))
+        if self.factor:
+            self.name_entry.insert(0, self.factor.name)
+
+        # 説明
+        desc_label = ctk.CTkLabel(
+            main_frame,
+            text="説明",
+            font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+            text_color=Colors.TEXT_PRIMARY,
+            anchor="w"
+        )
+        desc_label.pack(fill="x")
+
+        self.desc_entry = ctk.CTkTextbox(
+            main_frame,
+            font=(Fonts.FAMILY, Fonts.BODY),
+            height=100
+        )
+        self.desc_entry.pack(fill="x", pady=(4, Spacing.PADDING_MEDIUM))
+        if self.factor and self.factor.description:
+            self.desc_entry.insert("1.0", self.factor.description)
+
+        # 表示順序
+        order_label = ctk.CTkLabel(
+            main_frame,
+            text="表示順序",
+            font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+            text_color=Colors.TEXT_PRIMARY,
+            anchor="w"
+        )
+        order_label.pack(fill="x")
+
+        self.order_entry = ctk.CTkEntry(
+            main_frame,
+            font=(Fonts.FAMILY, Fonts.BODY),
+            placeholder_text="0",
+            height=40
+        )
+        self.order_entry.pack(fill="x", pady=(4, Spacing.PADDING_MEDIUM))
+        if self.factor:
+            self.order_entry.insert(0, str(self.factor.display_order))
+
+        # 有効フラグ
+        self.active_var = ctk.BooleanVar(value=self.factor.is_active if self.factor else True)
+        active_checkbox = ctk.CTkCheckBox(
+            main_frame,
+            text="有効",
+            font=(Fonts.FAMILY, Fonts.BODY),
+            variable=self.active_var
+        )
+        active_checkbox.pack(anchor="w", pady=Spacing.PADDING_MEDIUM)
+
+        # ボタン
+        btn_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(Spacing.PADDING_LARGE, 0))
+
+        cancel_btn = ctk.CTkButton(
+            btn_frame,
+            text="キャンセル",
+            font=(Fonts.FAMILY, Fonts.BODY),
+            fg_color=Colors.MEDIUM_GRAY,
+            hover_color=Colors.DARK_GRAY,
+            width=120,
+            height=40,
+            command=self.destroy
+        )
+        cancel_btn.pack(side="left")
+
+        save_btn = ctk.CTkButton(
+            btn_frame,
+            text="💾 保存",
+            font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+            fg_color=Colors.PRIMARY,
+            hover_color=Colors.PRIMARY_HOVER,
+            width=120,
+            height=40,
+            command=self._on_save
+        )
+        save_btn.pack(side="right")
+
+    def _on_save(self):
+        """保存処理"""
+        # バリデーション
+        name = self.name_entry.get().strip()
+        if not name:
+            self._show_error("要素名を入力してください")
+            return
+
+        description = self.desc_entry.get("1.0", "end-1c").strip()
+
+        try:
+            display_order = int(self.order_entry.get().strip() or "0")
+        except ValueError:
+            self._show_error("表示順序は数値で入力してください")
+            return
+
+        is_active = self.active_var.get()
+
+        # 保存
+        try:
+            with SessionLocal() as db:
+                repo = EvaluationFactorRepository(db)
+
+                data = {
+                    "name": name,
+                    "description": description,
+                    "factor_type": self.factor_type,
+                    "display_order": display_order,
+                    "is_active": is_active
+                }
+
+                if self.factor_id:
+                    repo.update(self.factor_id, data)
+                else:
+                    repo.create(data)
+
+            logger.info(f"Saved factor: {name}")
+            self.on_save()
+            self.destroy()
+
+        except DuplicateRecordException:
+            self._show_error("同じ名前の要素が既に存在します")
+        except Exception as e:
+            self._show_error(f"保存に失敗しました: {str(e)}")
+            logger.error(f"Failed to save factor: {e}")
+
+    def _show_error(self, message: str):
+        """エラーメッセージを表示"""
+        error_dialog = ctk.CTkInputDialog(
+            text=f"❌ {message}",
+            title="エラー"
+        )
+        error_dialog.get_input()

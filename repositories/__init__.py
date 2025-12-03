@@ -14,6 +14,11 @@ from repositories.mail_template_repository import MailTemplateRepository
 from repositories.document_template_repository import DocumentTemplateRepository
 from repositories.system_config_repository import SystemConfigRepository
 from repositories.backup_history_repository import BackupHistoryRepository
+# GA用評価要素リポジトリ
+from repositories.evaluation_factor_repository import EvaluationFactorRepository
+from repositories.staff_factor_weight_repository import StaffFactorWeightRepository
+from repositories.admin_evaluation_repository import AdminEvaluationRepository
+from repositories.hospital_choice_repository import HospitalChoiceRepository
 
 __all__ = [
     "BaseRepository",
@@ -28,4 +33,9 @@ __all__ = [
     "DocumentTemplateRepository",
     "SystemConfigRepository",
     "BackupHistoryRepository",
+    # GA用評価要素リポジトリ
+    "EvaluationFactorRepository",
+    "StaffFactorWeightRepository",
+    "AdminEvaluationRepository",
+    "HospitalChoiceRepository",
 ]

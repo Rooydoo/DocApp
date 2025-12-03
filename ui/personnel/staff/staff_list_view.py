@@ -273,7 +273,7 @@ class StaffListView(ctk.CTkFrame):
             fg_color="transparent"
         )
         button_frame.pack(fill="x", pady=(Spacing.PADDING_LARGE, 0))
-        
+
         edit_btn = ctk.CTkButton(
             button_frame,
             text="✏️ 編集",
@@ -285,7 +285,21 @@ class StaffListView(ctk.CTkFrame):
             command=lambda: self._on_edit_staff(staff)
         )
         edit_btn.pack(side="left", padx=(0, Spacing.PADDING_SMALL))
-        
+
+        # 専攻医の場合は希望・評価設定ボタンを表示
+        if staff.is_resident_doctor:
+            pref_btn = ctk.CTkButton(
+                button_frame,
+                text="📊 希望・評価",
+                font=(Fonts.FAMILY, Fonts.BODY, Fonts.BOLD),
+                fg_color=Colors.SUCCESS,
+                hover_color="#219a52",
+                width=140,
+                height=40,
+                command=lambda: self._on_preference_settings(staff)
+            )
+            pref_btn.pack(side="left", padx=(0, Spacing.PADDING_SMALL))
+
         delete_btn = ctk.CTkButton(
             button_frame,
             text="🗑️ 削除",
@@ -474,3 +488,18 @@ class StaffListView(ctk.CTkFrame):
         """エラーメッセージを表示"""
         # TODO: エラーダイアログ実装
         logger.error(f"Error: {message}")
+
+    def _on_preference_settings(self, staff: Staff):
+        """
+        希望・評価設定ボタンクリック
+
+        Args:
+            staff: 対象の職員
+        """
+        from ui.personnel.staff.staff_preference_dialog import StaffPreferenceDialog
+
+        dialog = StaffPreferenceDialog(
+            self,
+            staff=staff,
+            on_save=lambda: self._show_detail(staff)
+        )

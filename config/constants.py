@@ -191,6 +191,32 @@ class TableName:
     DOCUMENT_TEMPLATE: Final[str] = "document_template"
     SYSTEM_CONFIG: Final[str] = "system_config"
     BACKUP_HISTORY: Final[str] = "backup_history"
+    # GA用評価要素テーブル
+    EVALUATION_FACTOR: Final[str] = "evaluation_factor"
+    STAFF_FACTOR_WEIGHT: Final[str] = "staff_factor_weight"
+    ADMIN_EVALUATION: Final[str] = "admin_evaluation"
+    HOSPITAL_CHOICE: Final[str] = "hospital_choice"
+
+
+# 評価要素タイプ
+class FactorType:
+    """評価要素タイプ"""
+    STAFF_PREFERENCE: Final[str] = "staff_preference"  # 専攻医が重視する要素（年収、通勤等）
+    ADMIN_EVALUATION: Final[str] = "admin_evaluation"  # 医局側の評価要素（学術実績、人柄等）
+
+    @classmethod
+    def all(cls) -> list[str]:
+        """全てのタイプを取得"""
+        return [cls.STAFF_PREFERENCE, cls.ADMIN_EVALUATION]
+
+    @classmethod
+    def display_name(cls, factor_type: str) -> str:
+        """表示名を取得"""
+        names = {
+            cls.STAFF_PREFERENCE: "専攻医重視要素",
+            cls.ADMIN_EVALUATION: "医局側評価要素",
+        }
+        return names.get(factor_type, factor_type)
 
 
 # ===== API関連定数 =====

@@ -212,7 +212,7 @@ class MainWindow(ctk.CTk):
         elif tab_id == "outpatient":
             self._load_placeholder("🏥 外勤管理")
         elif tab_id == "mail":
-            self._load_placeholder("✉️ メール")
+            self._load_mail()
         elif tab_id == "document":
             self._load_placeholder("📄 書類")
         elif tab_id == "settings":
@@ -238,13 +238,22 @@ class MainWindow(ctk.CTk):
         
         logger.info("Personnel management view loaded")
     
+    def _load_mail(self):
+        """メール管理画面を読み込み"""
+        from ui.mail.mail_view import MailView
+
+        view = MailView(self.content_frame)
+        view.pack(fill="both", expand=True)
+
+        logger.info("Mail view loaded")
+
     def _load_settings(self):
         """設定画面を読み込み"""
         from ui.settings.settings_view import SettingsView
-        
+
         view = SettingsView(self.content_frame)
         view.pack(fill="both", expand=True)
-        
+
         logger.info("Settings view loaded")
     
     def _load_placeholder(self, title: str):
