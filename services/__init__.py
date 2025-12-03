@@ -8,6 +8,11 @@ from services.preference_survey_service import (
     PreferenceSurveyException,
     get_preference_survey_service
 )
+from services.document_service import (
+    DocumentService,
+    DocumentServiceException,
+    get_document_service
+)
 
 __all__ = [
     "ConfigService",
@@ -17,4 +22,7 @@ __all__ = [
     "PreferenceSurveyService",
     "PreferenceSurveyException",
     "get_preference_survey_service",
+    "DocumentService",
+    "DocumentServiceException",
+    "get_document_service",
 ]
