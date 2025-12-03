@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+.venv
+ECHO は <OFF> です。
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+ECHO は <OFF> です。
+# Environment
+.env
+ECHO は <OFF> です。
+# Database
+data/*.db
+data/*.db-journal
+ECHO は <OFF> です。
+# Logs
+logs/*.log
+ECHO は <OFF> です。
+# Backups
+backups/*.zip
+backups/*.sql
+ECHO は <OFF> です。
+# Google API Credentials
+config/credentials/*.json
+ECHO は <OFF> です。
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
