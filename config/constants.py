@@ -246,11 +246,24 @@ class GmailScopes:
 class FormsScopes:
     """Google Forms APIスコープ"""
     RESPONSES_READONLY: Final[str] = "https://www.googleapis.com/auth/forms.responses.readonly"
-    
+
     @classmethod
     def all(cls) -> list[str]:
         """全てのスコープを取得"""
         return [cls.RESPONSES_READONLY]
+
+
+# Google Sheets API スコープ
+class SheetsScopes:
+    """Google Sheets APIスコープ"""
+    SPREADSHEETS: Final[str] = "https://www.googleapis.com/auth/spreadsheets"
+    SPREADSHEETS_READONLY: Final[str] = "https://www.googleapis.com/auth/spreadsheets.readonly"
+    DRIVE_FILE: Final[str] = "https://www.googleapis.com/auth/drive.file"
+
+    @classmethod
+    def all(cls) -> list[str]:
+        """全てのスコープを取得"""
+        return [cls.SPREADSHEETS, cls.DRIVE_FILE]
 
 
 # ===== LLM関連定数 =====

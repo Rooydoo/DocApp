@@ -3,10 +3,12 @@
 """
 from ui.personnel.hospital import HospitalListView, HospitalFormDialog
 from ui.personnel.staff import StaffListView, StaffFormDialog
+from ui.personnel.survey import SurveyView
 
 __all__ = [
     "HospitalListView",
     "HospitalFormDialog",
     "StaffListView",
     "StaffFormDialog",
+    "SurveyView",
 ]

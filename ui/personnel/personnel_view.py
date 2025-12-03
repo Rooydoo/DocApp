@@ -6,6 +6,7 @@ import customtkinter as ctk
 from config.constants import Colors, Fonts, Spacing
 from ui.personnel.hospital import HospitalListView
 from ui.personnel.staff import StaffListView
+from ui.personnel.survey import SurveyView
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -14,10 +15,11 @@ logger = get_logger(__name__)
 class PersonnelView(ctk.CTkFrame):
     """
     人事管理メイン画面
-    
+
     サブタブ:
     - 病院管理
     - 職員管理
+    - 希望調査
     """
     
     def __init__(self, parent):
@@ -48,6 +50,7 @@ class PersonnelView(ctk.CTkFrame):
         self.tabs = [
             ("hospital", "🏥 病院管理"),
             ("staff", "👥 職員管理"),
+            ("survey", "📊 希望調査"),
         ]
         
         # タブボタンを作成
@@ -121,8 +124,13 @@ class PersonnelView(ctk.CTkFrame):
             view = HospitalListView(self.content_frame)
             view.pack(fill="both", expand=True)
             logger.info("Hospital management view loaded")
-        
+
         elif tab_id == "staff":
             view = StaffListView(self.content_frame)
             view.pack(fill="both", expand=True)
             logger.info("Staff management view loaded")
+
+        elif tab_id == "survey":
+            view = SurveyView(self.content_frame)
+            view.pack(fill="both", expand=True)
+            logger.info("Survey management view loaded")
