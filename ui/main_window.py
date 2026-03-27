@@ -214,7 +214,7 @@ class MainWindow(ctk.CTk):
         elif tab_id == "mail":
             self._load_mail()
         elif tab_id == "document":
-            self._load_placeholder("📄 書類")
+            self._load_document()
         elif tab_id == "settings":
             self._load_settings()
         else:
@@ -246,6 +246,15 @@ class MainWindow(ctk.CTk):
         view.pack(fill="both", expand=True)
 
         logger.info("Mail view loaded")
+
+    def _load_document(self):
+        """書類管理画面を読み込み"""
+        from ui.document.document_view import DocumentView
+
+        view = DocumentView(self.content_frame)
+        view.pack(fill="both", expand=True)
+
+        logger.info("Document view loaded")
 
     def _load_settings(self):
         """設定画面を読み込み"""

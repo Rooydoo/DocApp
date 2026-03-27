@@ -22,6 +22,7 @@ class ConfigService:
         GOOGLE_MAPS_API_KEY = "google_maps_api_key"
         GMAIL_CREDENTIALS_PATH = "gmail_credentials_path"
         GOOGLE_FORMS_CREDENTIALS_PATH = "google_forms_credentials_path"
+        GOOGLE_SHEETS_CREDENTIALS_PATH = "google_sheets_credentials_path"
         
         # LLM
         OLLAMA_BASE_URL = "ollama_base_url"
@@ -79,6 +80,10 @@ class ConfigService:
             self.Keys.GOOGLE_FORMS_CREDENTIALS_PATH: (
                 settings.google_forms_credentials_path,
                 "Google Forms API認証情報パス"
+            ),
+            self.Keys.GOOGLE_SHEETS_CREDENTIALS_PATH: (
+                settings.google_sheets_credentials_path,
+                "Google Sheets API認証情報パス"
             ),
             
             # LLM

@@ -36,6 +36,10 @@ class Settings(BaseSettings):
         default="config/credentials/forms_credentials.json",
         description="Google Forms API認証情報パス"
     )
+    google_sheets_credentials_path: str = Field(
+        default="config/credentials/sheets_credentials.json",
+        description="Google Sheets API認証情報パス"
+    )
     
     # ===== LLM (Ollama) =====
     ollama_base_url: str = Field(

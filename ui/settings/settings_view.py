@@ -175,6 +175,15 @@ class SettingsView(ctk.CTkFrame):
             field_type="text",
             placeholder="credentials/forms_credentials.json"
         )
+
+        # Google Sheets認証情報パス
+        self._add_input_field(
+            key=config_service.Keys.GOOGLE_SHEETS_CREDENTIALS_PATH,
+            label="Google Sheets API認証情報パス",
+            description="スプレッドシート集計出力用のcredentials.jsonファイルのパス",
+            field_type="text",
+            placeholder="credentials/sheets_credentials.json"
+        )
         
         self._add_section_title("LLM設定", top_padding=True)
         
